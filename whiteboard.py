@@ -7,6 +7,7 @@ import thread
 
 TCP_IP = "127.0.0.1"
 TCP_PORT = int(input("Enter port number: "))
+key = raw_input("Enter id(default is 0): ")
 b1 = "up"
 xold, yold = None, None
 root = Tk()
@@ -55,18 +56,21 @@ def motion(event):
 def receive():
     global s
     global drawing_area
-    while 1:
+    while True:
         data = s.recv(BUFFER_SIZE)
+        if (data == "Ping"):
+            continue
         xold, yold, eventx, eventy = data.split(" ")
         draw.append([xold, yold, eventx, eventy])
 
 BUFFER_SIZE = 1024
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((TCP_IP, TCP_PORT))
-key = raw_input("Enter id(default is 0): ")
 s.send(key)
 data = s.recv(BUFFER_SIZE)
 print data
+if (data[:7]!="SUCCESS"):
+    exit(0)
 thread.start_new_thread(receive, ())
 if __name__ == "__main__":
     main(root)
