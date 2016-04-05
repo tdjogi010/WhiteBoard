@@ -8,6 +8,18 @@ from concurrent.futures import Future
 
 class Server:
 
+	def readline(self, conn, recv_buffer=1, delim='\n'):
+		buffer = ''
+		data = True
+		while data:
+			data = conn.recv(recv_buffer)
+			buffer += data
+
+			while buffer.find(delim) != -1:
+				line, buffer = buffer.split('\n', 1)
+				return line
+		return ''
+
 	def get_id_from_pool(self):
 		for x in xrange(0, self.POOL_SIZE):
 			if (self.pool[x] == 0):
@@ -19,7 +31,7 @@ class Server:
 		if id not in self.ADDR.keys():
 			return
 		for _conn in self.ADDR[id]:
-			_conn[0].send(message)
+			_conn[0].sendall(message)
 		return
 
 	def handle_new_client(self, s):
@@ -28,21 +40,22 @@ class Server:
 				print "Waiting for client"
 				conn, addr = s.accept()
 				print "connected to client"
-				data = conn.recv(self.BUFFER_SIZE)
+				data = self.readline(conn)
+#				data = conn.recv(self.BUFFER_SIZE)
 				if not data:
 					continue
 				print "New client request:", data
 				client = [_ for _ in data.split()]
 				if (len(client)==0):
 					print "[Error 101] Invalid id supplied"
-					conn.send("No such group present!!! :-( Try again...\n")
+					conn.sendall("No such group present!!! :-( Try again...\n")
 					continue
 				id = int(client[0])
 				if (client[0] == '0'):
 					id = self.get_id_from_pool()
 					if (id == -1):
 						print "[Error 100] Maximum pool limit exceeded"
-						conn.send("Server busy!!! :-( Visit again...\n")
+						conn.sendall("Server busy!!! :-( Visit again...\n")
 						continue
 					self.ADDR[id] = [[conn]]
 					self.pool[id-1] = 1
@@ -50,11 +63,11 @@ class Server:
 				else:
 					if (id not in self.ADDR or self.ADDR[id] == None or len(self.ADDR[id]) == 0):
 						print "[Error 101] Invalid id supplied"
-						conn.send("No such group present!!! :-( Try again...\n")
+						conn.sendall("No such group present!!! :-( Try again...\n")
 						continue
 					self.ADDR[id].append([conn])
 					break
-			conn.send("SUCCESS Your id is "+str(id)+"\n")
+			conn.sendall("SUCCESS Your id is "+str(id)+"\n")
 			print "Client added"
 			print self.ADDR
 			thread.start_new_thread( self.waitForClient, (conn, addr, id))
@@ -68,21 +81,22 @@ class Server:
 					data = ""
 					ready = select.select([conn], [], [], 5)
 					if (ready[0]):
-						data = conn.recv(self.BUFFER_SIZE)
+						data = self.readline(conn)
 						if len(data)==0:
 							nullData=1
 						if (nullData==1):
 							raise ValueError("Client disconnected")
 						print data
 					else:
-						conn.send("Ping")
+						conn.sendall("Ping\n")
 						continue
 					if not data:
 						break
+					data = data+'\n'
 					print "Data recieved:", data
 					for a in self.ADDR[id]:
 						try:
-							a[0].send(data)
+							a[0].sendall(data)
 						except Exception as e:
 							print "[ERROR 001]Connection lost with a client. Removing...."
 							self.ADDR[id].remove(a)

@@ -48,16 +48,28 @@ def motion(event):
         if xold is not None and yold is not None:
             event.widget.create_line(xold,yold,event.x,event.y,smooth=TRUE)
             global s
-            s.send(str(xold)+" "+str(yold)+" "+str(event.x)+" "+str(event.y))
+            s.sendall(str(xold)+" "+str(yold)+" "+str(event.x)+" "+str(event.y)+'\n')
                           # here's where you draw it. smooth. neat.
         xold = event.x
         yold = event.y
+
+def readline(sock, recv_buffer=1, delim='\n'):
+	buffer = ''
+	data = True
+	while data:
+		data = sock.recv(recv_buffer)
+		buffer += data
+
+		while buffer.find(delim) != -1:
+			line, buffer = buffer.split('\n', 1)
+			return line
+	return ''
 
 def receive():
     global s
     global drawing_area
     while True:
-        data = s.recv(BUFFER_SIZE)
+        data = readline(s)
         if (data == "Ping"):
             continue
         xold, yold, eventx, eventy = data.split(" ")
@@ -66,8 +78,8 @@ def receive():
 BUFFER_SIZE = 1024
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((TCP_IP, TCP_PORT))
-s.send(key)
-data = s.recv(BUFFER_SIZE)
+s.sendall(str(key)+'\n')
+data = readline(s)
 print data
 if (data[:7]!="SUCCESS"):
     exit(0)
