@@ -41,7 +41,6 @@ class Server:
 				conn, addr = s.accept()
 				print "connected to client"
 				data = self.readline(conn)
-#				data = conn.recv(self.BUFFER_SIZE)
 				if not data:
 					continue
 				print "New client request:", data
@@ -144,5 +143,7 @@ class Server:
 
 		pass
 
+IP = raw_input("Enter IP: ")
 port = int(input("Enter port: "))
-serve = Server("127.0.0.1", port, 1024, 1)
+capacity = int(raw_input("Enter pool capacity: "))
+serve = Server(IP, port, 1024, capacity)
