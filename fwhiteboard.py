@@ -3,7 +3,8 @@ from Tkinter import *
 from ttk import Scrollbar, Sizegrip
 import socket
 import thread
-from tkColorChooser import askcolor
+from PIL import Image, ImageDraw
+import tkFileDialog
 
 TCP_IP = "127.0.0.1"
 TCP_IP = raw_input("Enter IP: ")
@@ -18,6 +19,7 @@ frame = Frame(root, width=200,height=100)
 frame.pack(expand=YES, fill=BOTH)
 #root.geometry("200x500")
 #root.resizable(width=FALSE, height=FALSE)
+
 hScroll = Scrollbar(frame, orient=HORIZONTAL)
 vScroll = Scrollbar(frame, orient=VERTICAL)
 hScroll.pack(side=BOTTOM, fill=X)
@@ -47,6 +49,23 @@ UpdateQueueLen = 300
 UpdateQueue = [[] for _ in range(UpdateQueueLen)]
 UpdateQueueIndex = 0
 
+image = Image.new("RGB", (root.winfo_screenwidth(), root.winfo_screenheight()), (255, 255, 255))
+imagedraw = ImageDraw.Draw(image)
+
+def save_image():
+    global image
+    global root
+    myFormats = [
+    ('Windows Bitmap','*.bmp'),
+    ('Portable Network Graphics','*.png'),
+    ('JPEG / JFIF','*.jpg'),
+    ('CompuServer GIF','*.gif'),
+    ]
+    fileName = tkFileDialog.asksaveasfilename(parent=root,filetypes=myFormats ,title="Save the image as...")
+    image.save(fileName)
+
+Button(root, text="Save as image", command=save_image).pack(padx=10, pady=00, side=BOTTOM)
+
 def main(master):
     global drawing_area
     drawing_area.pack()
@@ -65,6 +84,7 @@ def main(master):
         while len(draw)>0:
             x = draw.pop(0)
             drawing_area.create_line(x[0], x[1], x[2], x[3],smooth=TRUE, width=x[4], fill=x[5])
+            imagedraw.line([(float(x[0]), float(x[1])), (float(x[2]), float(x[3]))], fill=(0,0,0), width=int(float(x[4])))
         n += 1
         master.after(100, do_every_second, n)
     do_every_second(n)
@@ -109,6 +129,7 @@ def readline(sock, recv_buffer=1, delim='\n'):
 def receive():
     global s
     global drawing_area
+    global image
     try:
         while True:
             data = readline(s)
