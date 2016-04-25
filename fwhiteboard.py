@@ -140,18 +140,22 @@ def receive():
     try:
         while True:
             data = readline(s)
+            print "data received:",data
             if (data == "Ping"):
                 continue
-            xold, yold, eventx, eventy, thick = data.split(" ")
+            xold, yold, eventx, eventy,thick= data.split(" ")
             col = "#FF0000"
             
             h=root.winfo_screenheight()-400
             w=root.winfo_screenwidth()-800
             #scale up to your original resolution while receiving
+            print "ori received:",float(xold), float(yold), float(eventx), float(eventy)
+            print "scaled up:",float(xold)*w, float(yold)*h, float(eventx)*w, float(eventy)*h
             draw.append([float(xold)*w, float(yold)*h, float(eventx)*w, float(eventy)*h, thick, col])
             UpdateQueue[UpdateQueueIndex].append([xold, yold, eventx, eventy, thick, "#000000"])
         pass
     except Exception, e:
+    	print e
         print "Connection to server lost\nExiting..."
         s.close()
         root.destroy()
