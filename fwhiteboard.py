@@ -25,6 +25,7 @@ vScroll = Scrollbar(frame, orient=VERTICAL)
 hScroll.pack(side=BOTTOM, fill=X)
 vScroll.pack(side=RIGHT, fill=Y)
 drawing_area = Canvas(frame, width=root.winfo_screenwidth()-800, height=root.winfo_screenheight()-400, scrollregion=(0, 0, root.winfo_screenwidth(), root.winfo_screenheight()), yscrollcommand=vScroll.set, xscrollcommand=hScroll.set)
+
 #root.winfo_screenwidth() root.winfo_screenheight()
 hScroll['command'] = drawing_area.xview
 vScroll['command'] = drawing_area.yview
@@ -42,6 +43,7 @@ drawing_area["background"]="white"
 draw = []
 thickness = DoubleVar()
 w = Scale(root, from_=1, to=10, orient=HORIZONTAL, resolution=1.0, variable=thickness)
+print thickness.get()
 w.pack(padx=0, pady=00, side=BOTTOM)
 #w.grid(row=1, column=0)
 n = 0
@@ -109,7 +111,11 @@ def motion(event):
         if xold is not None and yold is not None:
             event.widget.create_line(xold,yold,xn,yn,smooth=TRUE, width=thickness.get())
             global s
-            s.sendall(str(xold)+" "+str(yold)+" "+str(xn)+" "+str(yn)+" "+str(thickness.get())+'\n')
+            global root
+            h=root.winfo_screenheight()-400
+            w=root.winfo_screenwidth()-800
+            #scale down to your original resolution while sending
+            s.sendall(str(xold/w)+" "+str(yold/h)+" "+str(xn/w)+" "+str(yn/h)+" "+str(thickness.get())+'\n')
                           # here's where you draw it. smooth. neat.
         xold = xn
         yold = yn
@@ -130,6 +136,7 @@ def receive():
     global s
     global drawing_area
     global image
+    global root
     try:
         while True:
             data = readline(s)
@@ -137,13 +144,16 @@ def receive():
                 continue
             xold, yold, eventx, eventy, thick = data.split(" ")
             col = "#FF0000"
-            draw.append([xold, yold, eventx, eventy, thick, col])
+            
+            h=root.winfo_screenheight()-400
+            w=root.winfo_screenwidth()-800
+            #scale up to your original resolution while receiving
+            draw.append([float(xold)*w, float(yold)*h, float(eventx)*w, float(eventy)*h, thick, col])
             UpdateQueue[UpdateQueueIndex].append([xold, yold, eventx, eventy, thick, "#000000"])
         pass
     except Exception, e:
         print "Connection to server lost\nExiting..."
         s.close()
-        global root
         root.destroy()
         sys.exit(0)
 
