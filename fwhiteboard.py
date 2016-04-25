@@ -114,7 +114,7 @@ def motion(event):
             global root
             h=root.winfo_screenheight()-400
             w=root.winfo_screenwidth()-800
-            #scale down to your original resolution while sending
+            #scale down from your original resolution while sending
             s.sendall(str(xold/w)+" "+str(yold/h)+" "+str(xn/w)+" "+str(yn/h)+" "+str(thickness.get())+'\n')
                           # here's where you draw it. smooth. neat.
         xold = xn
@@ -140,7 +140,7 @@ def receive():
     try:
         while True:
             data = readline(s)
-            print "data received:",data
+            # print "data received:",data
             if (data == "Ping"):
                 continue
             xold, yold, eventx, eventy,thick= data.split(" ")
@@ -149,8 +149,8 @@ def receive():
             h=root.winfo_screenheight()-400
             w=root.winfo_screenwidth()-800
             #scale up to your original resolution while receiving
-            print "ori received:",float(xold), float(yold), float(eventx), float(eventy)
-            print "scaled up:",float(xold)*w, float(yold)*h, float(eventx)*w, float(eventy)*h
+            # print "ori received:",float(xold), float(yold), float(eventx), float(eventy)
+            # print "scaled up:",float(xold)*w, float(yold)*h, float(eventx)*w, float(eventy)*h
             draw.append([float(xold)*w, float(yold)*h, float(eventx)*w, float(eventy)*h, thick, col])
             UpdateQueue[UpdateQueueIndex].append([xold, yold, eventx, eventy, thick, "#000000"])
         pass
