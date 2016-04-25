@@ -94,6 +94,8 @@ class Server:
 					data = data+'\n'
 					print "Data recieved:", data
 					for a in self.ADDR[id]:
+						if a[0] == conn:
+							continue
 						try:
 							a[0].sendall(data)
 						except Exception as e:

@@ -25,7 +25,8 @@ vScroll = Scrollbar(frame, orient=VERTICAL)
 hScroll.pack(side=BOTTOM, fill=X)
 vScroll.pack(side=RIGHT, fill=Y)
 drawing_area = Canvas(frame, width=root.winfo_screenwidth()-800, height=root.winfo_screenheight()-400, scrollregion=(0, 0, root.winfo_screenwidth(), root.winfo_screenheight()), yscrollcommand=vScroll.set, xscrollcommand=hScroll.set)
-
+Scalewidth=root.winfo_screenwidth()
+Scaleheight=root.winfo_screenheight()
 #root.winfo_screenwidth() root.winfo_screenheight()
 hScroll['command'] = drawing_area.xview
 vScroll['command'] = drawing_area.yview
@@ -43,7 +44,6 @@ drawing_area["background"]="white"
 draw = []
 thickness = DoubleVar()
 w = Scale(root, from_=1, to=10, orient=HORIZONTAL, resolution=1.0, variable=thickness)
-print thickness.get()
 w.pack(padx=0, pady=00, side=BOTTOM)
 #w.grid(row=1, column=0)
 n = 0
@@ -111,11 +111,9 @@ def motion(event):
         if xold is not None and yold is not None:
             event.widget.create_line(xold,yold,xn,yn,smooth=TRUE, width=thickness.get())
             global s
-            global root
-            h=root.winfo_screenheight()-400
-            w=root.winfo_screenwidth()-800
-            #scale down from your original resolution while sending
-            s.sendall(str(xold/w)+" "+str(yold/h)+" "+str(xn/w)+" "+str(yn/h)+" "+str(thickness.get())+'\n')
+            h=root.winfo_screenheight()
+            w=root.winfo_screenwidth()
+            s.sendall(str(xold/h)+" "+str(yold/w)+" "+str(xn/h)+" "+str(yn/w)+" "+str(thickness.get())+'\n')
                           # here's where you draw it. smooth. neat.
         xold = xn
         yold = yn
@@ -140,23 +138,20 @@ def receive():
     try:
         while True:
             data = readline(s)
-            # print "data received:",data
             if (data == "Ping"):
                 continue
-            xold, yold, eventx, eventy,thick= data.split(" ")
+            global Scaleheight
+            global Scalewidth
+            h = Scaleheight
+            w = Scalewidth
+            xold, yold, eventx, eventy, thick = map(float, data.split())
             col = "#FF0000"
-            
-            h=root.winfo_screenheight()-400
-            w=root.winfo_screenwidth()-800
-            #scale up to your original resolution while receiving
-            # print "ori received:",float(xold), float(yold), float(eventx), float(eventy)
-            # print "scaled up:",float(xold)*w, float(yold)*h, float(eventx)*w, float(eventy)*h
-            draw.append([float(xold)*w, float(yold)*h, float(eventx)*w, float(eventy)*h, thick, col])
-            UpdateQueue[UpdateQueueIndex].append([xold, yold, eventx, eventy, thick, "#000000"])
+            thick = int(thick)
+            draw.append([int(xold*h), int(yold*w), int(eventx*h), int(eventy*w), thick, col])
+            UpdateQueue[UpdateQueueIndex].append([int(xold*h), int(yold*w), int(eventx*h), int(eventy*w), thick, "#000000"])
         pass
     except Exception, e:
-    	print e
-        print "Connection to server lost\nExiting..."
+        print "Connection to server lost\nExiting...", e
         s.close()
         root.destroy()
         sys.exit(0)
