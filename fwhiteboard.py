@@ -113,7 +113,7 @@ def motion(event):
             global s
             h=root.winfo_screenheight()
             w=root.winfo_screenwidth()
-            s.sendall(str(xold/h)+" "+str(yold/w)+" "+str(xn/h)+" "+str(yn/w)+" "+str(thickness.get())+'\n')
+            s.sendall(str(xold/w)+" "+str(yold/h)+" "+str(xn/w)+" "+str(yn/h)+" "+str(thickness.get())+'\n')
                           # here's where you draw it. smooth. neat.
         xold = xn
         yold = yn
@@ -147,7 +147,7 @@ def receive():
             xold, yold, eventx, eventy, thick = map(float, data.split())
             col = "#FF0000"
             thick = int(thick)
-            draw.append([int(xold*h), int(yold*w), int(eventx*h), int(eventy*w), thick, col])
+            draw.append([int(xold*w), int(yold*h), int(eventx*w), int(eventy*h), thick, col])
             UpdateQueue[UpdateQueueIndex].append([int(xold*h), int(yold*w), int(eventx*h), int(eventy*w), thick, "#000000"])
         pass
     except Exception, e:
