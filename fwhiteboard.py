@@ -148,7 +148,7 @@ def receive():
             col = "#FF0000"
             thick = int(thick)
             draw.append([int(xold*w), int(yold*h), int(eventx*w), int(eventy*h), thick, col])
-            UpdateQueue[UpdateQueueIndex].append([int(xold*h), int(yold*w), int(eventx*h), int(eventy*w), thick, "#000000"])
+            UpdateQueue[UpdateQueueIndex].append([int(xold*w), int(yold*h), int(eventx*w), int(eventy*h), thick, "#000000"])
         pass
     except Exception, e:
         print "Connection to server lost\nExiting...", e
