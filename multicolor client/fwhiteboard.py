@@ -5,7 +5,14 @@ import socket
 import thread
 from PIL import Image, ImageDraw
 import tkFileDialog
+from tkColorChooser import askcolor              
 
+
+color = "#000000"
+def getColor():
+    global color
+    color = askcolor()[1] 
+    print color
 
 def clear():
     global s
@@ -13,14 +20,9 @@ def clear():
     global drawing_area
     global image
     global imagedraw
-    global UpdateQueue
-    global UpdateQueueLen
-    for z in range(UpdateQueueLen):
-    	UpdateQueue[z] = []
     drawing_area.delete("all")
     image = Image.new("RGB", (root.winfo_screenwidth(), root.winfo_screenheight()), (255, 255, 255))
     imagedraw = ImageDraw.Draw(image)
-
 
 TCP_IP = "127.0.0.1"
 TCP_IP = raw_input("Enter IP: ")
@@ -66,6 +68,7 @@ n = 0
 UpdateQueueLen = 300
 UpdateQueue = [[] for _ in range(UpdateQueueLen)]
 UpdateQueueIndex = 0
+Button(text='Select Color', command=getColor).pack(padx=0, pady=00, side=RIGHT, expand=YES)
 Button(text='Clear screen', command=clear).pack(padx=0, pady=00, side=RIGHT, expand=YES)
 
 image = Image.new("RGB", (root.winfo_screenwidth(), root.winfo_screenheight()), (255, 255, 255))
@@ -94,28 +97,18 @@ def main(master):
     def do_every_second(n):
         global draw
         global drawing_area
-        global UpdateQueueIndex
-        global UpdateQueueLen
-        global UpdateQueue
         global imagedraw
         global image
-        UpdateQueueIndex = (UpdateQueueIndex+1)%UpdateQueueLen
-        draw = draw + UpdateQueue[UpdateQueueIndex]
-        UpdateQueue[UpdateQueueIndex] = []
         while len(draw)>0:
             x = draw.pop(0)
             if len(x)==1:
                 if x[0] == "clear":
                     drawing_area.delete("all")
-                    for z in range(UpdateQueueLen):
-                    	UpdateQueue[z] = []
                     image = Image.new("RGB", (root.winfo_screenwidth(), root.winfo_screenheight()), (255, 255, 255))
                     imagedraw = ImageDraw.Draw(image)
-                    draw = []
-                    break
-
+                    continue
             drawing_area.create_line(x[0], x[1], x[2], x[3],smooth=TRUE, width=x[4], fill=x[5])
-            imagedraw.line([(float(x[0]), float(x[1])), (float(x[2]), float(x[3]))], fill=(0,0,0), width=int(float(x[4])))
+            imagedraw.line([(float(x[0]), float(x[1])), (float(x[2]), float(x[3]))], fill=x[5], width=int(float(x[4])))
         n += 1
         master.after(100, do_every_second, n)
     do_every_second(n)
@@ -138,12 +131,12 @@ def motion(event):
         xn = canvas.canvasx(event.x)
         yn = canvas.canvasy(event.y)
         if xold is not None and yold is not None:
-            event.widget.create_line(xold,yold,xn,yn,smooth=TRUE, width=thickness.get())
+            event.widget.create_line(xold,yold,xn,yn,smooth=TRUE, width=thickness.get(), fill=color)
             global s
-            imagedraw.line([(float(xold), float(yold)), (float(xn), float(yn))], fill=(0,0,0), width=int(thickness.get()))
+            imagedraw.line([(float(xold), float(yold)), (float(xn), float(yn))], width=int(thickness.get()), fill=color)
             h=root.winfo_screenheight()
             w=root.winfo_screenwidth()
-            s.sendall(str(xold/w)+" "+str(yold/h)+" "+str(xn/w)+" "+str(yn/h)+" "+str(thickness.get())+'\n')
+            s.sendall(str(xold/w)+" "+str(yold/h)+" "+str(xn/w)+" "+str(yn/h)+" "+str(thickness.get())+" "+str(color)+'\n')
                           # here's where you draw it. smooth. neat.
         xold = xn
         yold = yn
@@ -177,11 +170,10 @@ def receive():
             global Scalewidth
             h = Scaleheight
             w = Scalewidth
-            xold, yold, eventx, eventy, thick = map(float, data.split())
-            col = "#FF0000"
+            xold, yold, eventx, eventy, thick, col = map(str, data.split())
+            xold, yold, eventx, eventy, thick = map(float, [xold, yold, eventx, eventy, thick])
             thick = int(thick)
             draw.append([int(xold*w), int(yold*h), int(eventx*w), int(eventy*h), thick, col])
-            UpdateQueue[UpdateQueueIndex].append([int(xold*w), int(yold*h), int(eventx*w), int(eventy*h), thick, "#000000"])
         pass
     except Exception, e:
         print "Connection to server lost\nExiting...", e
