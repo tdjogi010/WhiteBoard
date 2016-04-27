@@ -111,6 +111,7 @@ def motion(event):
         if xold is not None and yold is not None:
             event.widget.create_line(xold,yold,xn,yn,smooth=TRUE, width=thickness.get())
             global s
+            imagedraw.line([(float(xold), float(yold)), (float(xn), float(yn))], fill=(0,0,0), width=int(thickness.get()))
             h=root.winfo_screenheight()
             w=root.winfo_screenwidth()
             s.sendall(str(xold/w)+" "+str(yold/h)+" "+str(xn/w)+" "+str(yn/h)+" "+str(thickness.get())+'\n')
